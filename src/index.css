@@ -11,27 +11,7 @@
   
   body {
     @apply bg-black text-white;
-    font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
-    overflow-x: hidden;
-  }
-  
-  /* Custom Scrollbar */
-  ::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
-  }
-  
-  ::-webkit-scrollbar-track {
-    background: #1a1a1a;
-  }
-  
-  ::-webkit-scrollbar-thumb {
-    background: #444;
-    border-radius: 3px;
-  }
-  
-  ::-webkit-scrollbar-thumb:hover {
-    background: #666;
+    font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   }
 }
 
@@ -48,19 +28,5 @@
     -webkit-line-clamp: 3;
     -webkit-box-orient: vertical;
     overflow: hidden;
-  }
-  
-  .scrollbar-thin::-webkit-scrollbar {
-    width: 4px;
-    height: 4px;
-  }
-  
-  .scrollbar-thin::-webkit-scrollbar-track {
-    background: #1a1a1a;
-  }
-  
-  .scrollbar-thin::-webkit-scrollbar-thumb {
-    background: #444;
-    border-radius: 2px;
   }
 }
