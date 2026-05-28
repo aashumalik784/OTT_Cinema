@@ -1,7 +1,17 @@
 import { useState } from 'react'
-import './App.css'
 
-const dummyMovies = [
+type Movie = {
+  id: number
+  title: string
+  year: string
+  genre: string
+  rating: number
+  poster: string
+  backdrop: string
+  desc: string
+}
+
+const dummyMovies: Movie[] = [
   { id: 1, title: "Pathaan", year: "2023", genre: "Action", rating: 8.1, poster: "https://image.tmdb.org/t/p/w500/1E5baAaEse26fej7uHcjOgEE2t2.jpg", backdrop: "https://image.tmdb.org/t/p/original/bQXAqRx2Fgc46uCVWgoPz5L5Dtr.jpg", desc: "An Indian spy takes on the leader of a mercenary army bent on unleashing chaos." },
   { id: 2, title: "Jawan", year: "2023", genre: "Action", rating: 7.9, poster: "https://image.tmdb.org/t/p/w500/jFt1gS4BGHlK8xt76Y81AlpYMRj.jpg", backdrop: "https://image.tmdb.org/t/p/original/iIvQnZyzgx9TkW0YHkaX5r6CmXL.jpg", desc: "A man is driven by a personal vendetta to rectify the wrongs in society." },
   { id: 3, title: "Animal", year: "2023", genre: "Action", rating: 6.2, poster: "https://image.tmdb.org/t/p/w500/5QJ0TQylu4eLoz7xIxU1hUH6imJ.jpg", backdrop: "https://image.tmdb.org/t/p/original/5YZbUmjbMa3ClvSW1Wj3D6XGol.jpg", desc: "The son of a wealthy man returns home and turns to violence." },
@@ -11,8 +21,8 @@ const dummyMovies = [
 ]
 
 function App() {
-  const [banner] = useState(dummyMovies[0])
-  const [category, setCategory] = useState('all')
+  const [banner] = useState<Movie>(dummyMovies[0])
+  const [category, setCategory] = useState<string>('all')
 
   return (
     <div className="app">
@@ -54,7 +64,7 @@ function App() {
       <div className="row">
         <h2>🔥 Trending Now</h2>
         <div className="row-posters">
-          {dummyMovies.map(movie => (
+          {dummyMovies.map((movie: Movie) => (
             <div key={movie.id} className="movie-card">
               <img src={movie.poster} alt={movie.title} className="poster" />
               <div className="rating-badge">★ {movie.rating}</div>
@@ -68,7 +78,7 @@ function App() {
       <div className="row">
         <h2>Hollywood Dubbed</h2>
         <div className="row-posters">
-          {dummyMovies.slice(3).map(movie => (
+          {dummyMovies.slice(3).map((movie: Movie) => (
             <div key={movie.id} className="movie-card">
               <img src={movie.poster} alt={movie.title} className="poster" />
               <div className="rating-badge">★ {movie.rating}</div>
