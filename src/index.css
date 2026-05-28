@@ -1,5 +1,227 @@
-body {
+* {
   margin: 0;
-  background-color: #0f0f0f;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Segoe UI', sans-serif;
+}
+
+.app {
+  background-color: #0f0f1a;
+  color: white;
+  min-height: 100vh;
+  padding-bottom: 70px;
+}
+
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 20px;
+  background-color: #0f0f1a;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.logo {
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: 2px;
+}
+
+.logo-c {
+  color: #e50914;
+}
+
+.nav-icons {
+  display: flex;
+  gap: 20px;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.banner {
+  height: 500px;
+  background-size: cover;
+  background-position: center top;
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  padding: 30px 20px;
+}
+
+.banner::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 150px;
+  background: linear-gradient(180deg, transparent, #0f0f1a);
+}
+
+.banner-content {
+  z-index: 10;
+  max-width: 600px;
+}
+
+.tags {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.tag-trending {
+  background: #7b2cbf;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.tag-rating {
+  background: rgba(0,0,0,0.6);
+  border: 1px solid #ffd60a;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  color: #ffd60a;
+  font-weight: 600;
+}
+
+.banner-title {
+  font-size: 2.5rem;
+  font-weight: 800;
+  margin-bottom: 8px;
+}
+
+.banner-info {
+  color: #b3b3b3;
+  margin-bottom: 4px;
+  font-size: 14px;
+}
+
+.banner-genre {
+  color: #e50914;
+  font-weight: 600;
+  margin-bottom: 12px;
+  font-size: 14px;
+}
+
+.banner-desc {
+  color: #d1d1d1;
+  margin-bottom: 20px;
+  line-height: 1.4;
+  font-size: 15px;
+}
+
+.banner-buttons {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+}
+
+.play-btn {
+  background-color: #e50914;
+  color: white;
+  border: none;
+  padding: 12px 30px;
+  font-size: 16px;
+  font-weight: 700;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.play-btn:hover {
+  background-color: #f40612;
+}
+
+.list-btn,.info-btn {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 14px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.categories {
+  display: flex;
+  gap: 10px;
+  padding: 20px;
+  overflow-x: scroll;
+}
+
+.categories::-webkit-scrollbar {
+  display: none;
+}
+
+.cat-btn {
+  background: #1a1a2e;
+  border: none;
+  color: #b3b3b3;
+  padding: 10px 20px;
+  border-radius: 20px;
+  white-space: nowrap;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.cat-btn.active {
+  background: #e50914;
   color: white;
 }
+
+.row {
+  padding: 0 20px;
+  margin-bottom: 25px;
+}
+
+.row h2 {
+  font-size: 20px;
+  margin-bottom: 15px;
+  font-weight: 700;
+}
+
+.row-posters {
+  display: flex;
+  overflow-x: scroll;
+  gap: 12px;
+  padding-bottom: 10px;
+}
+
+.row-posters::-webkit-scrollbar {
+  display: none;
+}
+
+.movie-card {
+  min-width: 140px;
+  cursor: pointer;
+  position: relative;
+}
+
+.poster {
+  width: 140px;
+  height: 200px;
+  object-fit: cover;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  transition: transform 0.2s;
+}
+
+.poster:hover {
+  transform: scale(1.05);
+}
+
+.rating-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: rgba(0,0,0,0.8);
+  color: #ffd60a;
+  padding: 2px 6px;
+  border-radius:
