@@ -1,6 +1,15 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
-// सभी मूवीज़ - Working Images और Working Videos
+// ============================================
+// TMDB API Configuration
+// ============================================
+const TMDB_API_KEY = "804cc52037a36773e1da4c399ce3dc72"
+const TMDB_IMAGE_URL = "https://image.tmdb.org/t/p/w500"
+const TMDB_BACKDROP_URL = "https://image.tmdb.org/t/p/original"
+
+// ============================================
+// Movie Data with TMDB Posters
+// ============================================
 const MOVIES = [
   {
     id: 1,
@@ -151,7 +160,6 @@ function App() {
 
   const categories = ["All", ...new Set(MOVIES.map(m => m.category))]
 
-  // Filter movies
   let filteredMovies = MOVIES
   if (selectedCategory !== "All") {
     filteredMovies = filteredMovies.filter(m => m.category === selectedCategory)
@@ -162,161 +170,94 @@ function App() {
     )
   }
 
-  const playMovie = (youtubeId) => {
-    setPlayingId(youtubeId)
-  }
-
-  const closePlayer = () => {
-    setPlayingId(null)
-  }
-
-  // Banner Movie (पहली मूवी)
   const bannerMovie = MOVIES[0]
 
   return (
     <div className="min-h-screen bg-black text-white">
       
-      {/* Video Player Modal */}
+      {/* Video Player */}
       {playingId && (
-        <div 
-          className="fixed inset-0 bg-black/95 z-50 flex items-center justify-center"
-          onClick={closePlayer}
-        >
+        <div className="fixed inset-0 bg-black/95 z-50 flex items-center justify-center" onClick={() => setPlayingId(null)}>
           <div className="relative w-full max-w-5xl mx-4" onClick={e => e.stopPropagation()}>
-            <button 
-              onClick={closePlayer}
-              className="absolute -top-12 right-0 text-white text-2xl hover:text-gray-300 bg-red-600 px-4 py-1 rounded-full"
-            >
-              ✕ बंद करें
-            </button>
+            <button onClick={() => setPlayingId(null)} className="absolute -top-12 right-0 text-white text-2xl bg-red-600 px-4 py-1 rounded-full">✕ बंद करें</button>
             <div className="relative pb-[56.25%] h-0">
-              <iframe
-                className="absolute top-0 left-0 w-full h-full rounded-xl"
-                src={`https://www.youtube.com/embed/${playingId}?autoplay=1&rel=0`}
-                title="YouTube Player"
-                frameBorder="0"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
+              <iframe 
+                className="absolute top-0 left-0 w-full h-full rounded-xl" 
+                src={`https://www.youtube.com/embed/${playingId}?autoplay=1&rel=0`} 
+                title="Player" 
+                frameBorder="0" 
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                allowFullScreen 
               />
-            </div>
-            <div className="text-center text-white text-sm mt-3">
-              🎬 YouTube पर फ्री में देखें
             </div>
           </div>
         </div>
       )}
 
-      {/* Hero Banner */}
-      <div 
-        className="relative h-[70vh] min-h-[500px] bg-cover bg-center"
-        style={{ backgroundImage: `url(${bannerMovie.backdrop})` }}
-      >
+      {/* Banner */}
+      <div className="relative h-[70vh] min-h-[500px] bg-cover bg-center" style={{ backgroundImage: `url(${bannerMovie.backdrop})` }}>
         <div className="absolute inset-0 bg-gradient-to-r from-black via-black/70 to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent" />
-        
         <div className="relative h-full flex items-center px-6 md:px-20">
           <div className="max-w-2xl">
             <div className="flex gap-2 mb-3">
-              <span className="px-3 py-1 bg-red-600 rounded-full text-sm font-semibold">
-                🎬 फ्री में देखें
-              </span>
-              <span className="px-3 py-1 bg-yellow-600 rounded-full text-sm font-semibold">
-                ⭐ {bannerMovie.rating}/10
-              </span>
+              <span className="px-3 py-1 bg-red-600 rounded-full text-sm">🎬 फ्री में देखें</span>
+              <span className="px-3 py-1 bg-yellow-600 rounded-full text-sm">⭐ {bannerMovie.rating}/10</span>
+              <span className="px-3 py-1 bg-blue-600 rounded-full text-sm">{bannerMovie.category}</span>
             </div>
             <h1 className="text-5xl md:text-7xl font-bold mb-3">{bannerMovie.title}</h1>
             <div className="flex gap-4 text-gray-300 mb-4">
-              <span>{bannerMovie.year}</span>
-              <span>{bannerMovie.genre}</span>
-              <span>{bannerMovie.language}</span>
-              <span>{bannerMovie.duration}</span>
+              <span>📅 {bannerMovie.year}</span>
+              <span>🎭 {bannerMovie.genre}</span>
+              <span>🔊 {bannerMovie.language}</span>
+              <span>⏱️ {bannerMovie.duration}</span>
             </div>
-            <p className="text-gray-200 mb-6 max-w-xl">{bannerMovie.desc}</p>
-            <button 
-              onClick={() => playMovie(bannerMovie.youtubeId)}
-              className="bg-white text-black px-8 py-3 rounded-lg font-bold text-lg hover:bg-gray-200 transition"
-            >
-              ▶ अभी देखें
-            </button>
+            <p className="text-gray-200 mb-6">{bannerMovie.desc}</p>
+            <button onClick={() => setPlayingId(bannerMovie.youtubeId)} className="bg-white text-black px-8 py-3 rounded-lg font-bold text-lg hover:bg-gray-200 transition">▶ अभी देखें</button>
           </div>
         </div>
       </div>
 
-      {/* Search and Filter Section */}
-      <div className="sticky top-0 z-30 bg-black/95 backdrop-blur-sm px-6 py-4 border-b border-gray-800">
+      {/* Search Section */}
+      <div className="sticky top-0 z-30 bg-black/95 px-6 py-4 border-b border-gray-800">
         <div className="flex flex-wrap gap-2 mb-4">
           {categories.map(cat => (
-            <button
-              key={cat}
-              onClick={() => setSelectedCategory(cat)}
-              className={`px-4 py-2 rounded-full text-sm transition whitespace-nowrap ${
-                selectedCategory === cat 
-                  ? 'bg-white text-black font-semibold' 
-                  : 'bg-gray-800 text-white hover:bg-gray-700'
-              }`}
-            >
+            <button key={cat} onClick={() => setSelectedCategory(cat)} className={`px-4 py-2 rounded-full text-sm transition ${selectedCategory === cat ? 'bg-white text-black font-semibold' : 'bg-gray-800 text-white hover:bg-gray-700'}`}>
               {cat === "All" ? "🎬 सभी" : cat}
             </button>
           ))}
         </div>
-        
-        <input
-          type="text"
-          placeholder="🔍 मूवी ढूंढें (नाम, शैली, भाषा से)..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="w-full md:w-96 px-4 py-2 rounded-full bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-white"
+        <input 
+          type="text" 
+          placeholder="🔍 मूवी ढूंढें..." 
+          value={search} 
+          onChange={e => setSearch(e.target.value)} 
+          className="w-full md:w-96 px-4 py-2 rounded-full bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-white" 
         />
       </div>
 
       {/* Movies Grid */}
       <div className="px-6 py-8">
-        <div className="flex justify-between items-center mb-5">
-          <h2 className="text-xl font-bold">{filteredMovies.length} मूवीज़ मिलीं</h2>
-          <span className="text-green-400 text-sm hidden md:block">
-            ✨ {MOVIES.length}+ फ्री मूवीज़ उपलब्ध
-          </span>
-        </div>
-
+        <h2 className="text-xl font-bold mb-5">{filteredMovies.length} मूवीज़ मिलीं</h2>
+        
         {filteredMovies.length === 0 ? (
           <div className="text-center py-20">
-            <div className="text-6xl mb-4">🎬</div>
-            <p className="text-gray-400 text-lg">कोई मूवी नहीं मिली</p>
-            <button 
-              onClick={() => {
-                setSearch("")
-                setSelectedCategory("All")
-              }}
-              className="mt-4 text-white underline"
-            >
-              सभी फ़िल्टर हटाएं
-            </button>
+            <p className="text-gray-400">कोई मूवी नहीं मिली</p>
           </div>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
             {filteredMovies.map(movie => (
-              <div
-                key={movie.id}
-                className="bg-gray-900 rounded-xl overflow-hidden hover:scale-105 transition-all duration-300 cursor-pointer group"
-                onClick={() => playMovie(movie.youtubeId)}
-              >
+              <div key={movie.id} className="bg-gray-900 rounded-xl overflow-hidden hover:scale-105 transition cursor-pointer group" onClick={() => setPlayingId(movie.youtubeId)}>
                 <div className="relative">
                   <img 
                     src={movie.poster} 
-                    alt={movie.title}
+                    alt={movie.title} 
                     className="w-full h-56 md:h-64 object-cover"
+                    onError={(e) => {
+                      e.target.src = "https://via.placeholder.com/500x750/333/white?text=No+Image"
+                    }}
                   />
-                  <div className="absolute top-2 left-2 bg-black/70 px-2 py-1 rounded-md text-xs">
-                    ⭐ {movie.rating}
-                  </div>
-                  <div className="absolute top-2 right-2 bg-black/70 px-2 py-1 rounded-md text-xs">
-                    {movie.year}
-                  </div>
-                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
-                    <button className="bg-white text-black px-4 py-2 rounded-full text-sm font-semibold">
-                      🎬 देखें
-                    </button>
-                  </div>
+                  <div className="absolute top-2 left-2 bg-black/70 px-2 py-1 rounded-md text-xs">⭐ {movie.rating}</div>
+                  <div className="absolute top-2 right-2 bg-black/70 px-2 py-1 rounded-md text-xs">{movie.year}</div>
                 </div>
                 <div className="p-3">
                   <h3 className="text-white font-semibold truncate">{movie.title}</h3>
@@ -333,8 +274,9 @@ function App() {
 
       {/* Footer */}
       <footer className="text-center text-gray-500 text-sm py-6 border-t border-gray-800">
-        <p>🎬 {MOVIES.length}+ लीगल फ्री मूवीज़ | Shemaroo • Goldmines • Rajshri</p>
-        <p className="text-xs mt-1">YouTube पर फ्री में उपलब्ध | कॉपीराइट का सम्मान करें</p>
+        🎬 {MOVIES.length}+ फ्री मूवीज़ | Shemaroo • Goldmines • Rajshri
+        <br />
+        <span className="text-xs text-gray-600">Powered by TMDB API</span>
       </footer>
     </div>
   )
