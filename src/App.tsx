@@ -1,4 +1,10 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+
+// तेरी TMDB API Key - AdSense नहीं लगाना
+const TMDB_API_KEY = "804cc52037a36773e1da4c399ce3dc72"
+const TMDB_BASE_URL = "https://api.themoviedb.org/3"
+const IMG_URL = "https://image.tmdb.org/t/p/w500"
+const BACKDROP_URL = "https://image.tmdb.org/t/p/original"
 
 type Movie = {
   id: number
@@ -9,83 +15,93 @@ type Movie = {
   poster: string
   backdrop: string
   desc: string
-  youtubeId: string
+  youtubeId?: string
   language: string
   duration: string
 }
 
-// 👇 यहाँ 100 movies add कर दे - सब Free Legal
-const freeMovies: Movie[] = [
-  { 
-    id: 1, title: "Anand", year: "1971", genre: "Drama", rating: 8.8,
-    poster: "https://i.ytimg.com/vi/6TeRjhBn3h0/hqdefault.jpg",
-    backdrop: "https://i.ytimg.com/vi/6TeRjhBn3h0/maxresdefault.jpg",
-    desc: "A terminally ill man spreads joy to everyone around him.",
-    youtubeId: "6TeRjhBn3h0", language: "Hindi", duration: "2h 2m"
-  },
-  { 
-    id: 2, title: "Gol Maal", year: "1979", genre: "Comedy", rating: 8.5,
-    poster: "https://i.ytimg.com/vi/TvxmQ0MEH2E/hqdefault.jpg",
-    backdrop: "https://i.ytimg.com/vi/TvxmQ0MEH2E/maxresdefault.jpg",
-    desc: "Ramprasad pretends to have a twin to save his job.",
-    youtubeId: "TvxmQ0MEH2E", language: "Hindi", duration: "2h 24m"
-  },
-  { 
-    id: 3, title: "Chupke Chupke", year: "1975", genre: "Comedy", rating: 8.3,
-    poster: "https://i.ytimg.com/vi/uVYcKZYnC5Q/hqdefault.jpg",
-    backdrop: "https://i.ytimg.com/vi/uVYcKZYnC5Q/maxresdefault.jpg",
-    desc: "A professor pretends to be a driver to test his wife's brother.",
-    youtubeId: "uVYcKZYnC5Q", language: "Hindi", duration: "2h 26m"
-  },
-  { 
-    id: 4, title: "Pyaasa", year: "1957", genre: "Drama", rating: 8.4,
-    poster: "https://i.ytimg.com/vi/K4krT7atyIs/hqdefault.jpg",
-    backdrop: "https://i.ytimg.com/vi/K4krT7atyIs/maxresdefault.jpg",
-    desc: "A poet's struggle for recognition in a materialistic world.",
-    youtubeId: "K4krT7atyIs", language: "Hindi", duration: "2h 26m"
-  },
-  { 
-    id: 5, title: "Mother India", year: "1957", genre: "Drama", rating: 8.1,
-    poster: "https://i.ytimg.com/vi/6EH6phlJgJE/hqdefault.jpg",
-    backdrop: "https://i.ytimg.com/vi/6EH6phlJgJE/maxresdefault.jpg",
-    desc: "A poverty-stricken woman raises her sons through hardship.",
-    youtubeId: "6EH6phlJgJE", language: "Hindi", duration: "2h 52m"
-  },
-  // यहाँ 95 movies और add कर दे YouTube से
-]
+// Free Legal Bollywood Movies - YouTube IDs from Shemaroo/Ultra
+const freeYouTubeIds: {[key: number]: string} = {
+  19404: "6TeRjhBn3h0",   // Anand 1971
+  788: "TvxmQ0MEH2E",     // Gol Maal 1979  
+  109428: "uVYcKZYnC5Q",  // Chupke Chupke 1975
+  278: "K4krT7atyIs",     // Pyaasa 1957
+  667: "6EH6phlJgJE",     // Mother India 1957
+  9469: "9IPlYL-Gkqo",    // Mughal-E-Azam 1960
+  105: "bW7J0mh12EM",     // Sholay 1975
+  378176: "7YQymLqE_pY",  // Guide 1965
+  111977: "sJbV-yS-G2s",  // Madhumati 1958
+  688: "O1y6O3bKxwQ",     // Kagaz Ke Phool 1959
+}
 
 function App() {
-  const [movies] = useState<Movie[]>(freeMovies)
-  const [playingMovie, setPlayingMovie] = useState<string | null>(null)
-  const [banner] = useState<Movie | null>(freeMovies[0])
-  const [selectedGenre, setSelectedGenre] = useState<string>("All")
-  const [searchQuery, setSearchQuery] = useState<string>("")
+  const [movies, setMovies] = useState<Movie[]>([])
+  const [playingId, setPlayingId] = useState<string | null>(null)
+  const [banner, setBanner] = useState<Movie | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [selectedGenre, setSelectedGenre] = useState("All")
+  const [search, setSearch] = useState("")
   const [myList, setMyList] = useState<number[]>([])
 
-  const filteredMovies = movies.filter(movie => {
-    const matchGenre = selectedGenre === "All" || movie.genre.includes(selectedGenre)
-    const matchSearch = movie.title.toLowerCase().includes(searchQuery.toLowerCase())
-    return matchGenre && matchSearch
-  })
+  useEffect(() => {
+    const fetchMovies = async () => {
+      try {
+        const classicIds = [19404, 788, 109428, 278, 667, 9469, 105, 378176, 111977, 688]
+        const moviePromises = classicIds.map(id => 
+          fetch(`${TMDB_BASE_URL}/movie/${id}?api_key=${TMDB_API_KEY}`)
+            .then(res => res.json())
+        )
+        
+        const moviesData = await Promise.all(moviePromises)
+        
+        const formatted: Movie[] = moviesData.map((m: any) => ({
+          id: m.id,
+          title: m.title,
+          year: m.release_date?.split('-')[0] || 'N/A',
+          genre: m.genres?.[0]?.name || 'Classic',
+          rating: m.vote_average ? m.vote_average.toFixed(1) : 'N/A',
+          poster: m.poster_path ? `${IMG_URL}${m.poster_path}` : '',
+          backdrop: m.backdrop_path ? `${BACKDROP_URL}${m.backdrop_path}` : '',
+          desc: m.overview || 'No description available',
+          youtubeId: freeYouTubeIds[m.id],
+          language: "Hindi",
+          duration: m.runtime ? `${Math.floor(m.runtime/60)}h ${m.runtime%60}m` : '2h 30m'
+        }))
+        
+        setMovies(formatted)
+        setBanner(formatted[0])
+        setLoading(false)
+      } catch (error) {
+        console.error("TMDB Error:", error)
+        setLoading(false)
+      }
+    }
+    fetchMovies()
+  }, [])
 
-  const playMovie = (youtubeId: string) => setPlayingMovie(youtubeId)
-  const toggleMyList = (movieId: number) => {
-    if (myList.includes(movieId)) setMyList(myList.filter(id => id !== movieId))
-    else setMyList([...myList, movieId])
+  const genres = ["All", "Drama", "Comedy", "Romance", "Action", "Classic"]
+  
+  const filtered = movies.filter(m => 
+    (selectedGenre === "All" || m.genre === selectedGenre) &&
+    m.title.toLowerCase().includes(search.toLowerCase())
+  )
+
+  const toggleList = (id: number) => {
+    setMyList(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id])
   }
 
-  const genres = ["All", "Drama", "Comedy", "Romance", "Action", "Mystery"]
+  if (loading) return <div className="loading">Loading Classic Movies...</div>
 
   return (
     <div className="app">
-      {playingMovie && (
-        <div className="video-modal" onClick={() => setPlayingMovie(null)}>
-          <div className="video-container" onClick={(e) => e.stopPropagation()}>
-            <button className="close-btn" onClick={() => setPlayingMovie(null)}>✕</button>
-            <iframe
-              width="100%" height="100%"
-              src={`https://www.youtube.com/embed/${playingMovie}?autoplay=1&rel=0`}
-              frameBorder="0" allow="autoplay; encrypted-media; fullscreen" allowFullScreen
+      {playingId && (
+        <div className="video-modal" onClick={() => setPlayingId(null)}>
+          <div className="video-container" onClick={e => e.stopPropagation()}>
+            <button className="close-btn" onClick={() => setPlayingId(null)}>✕</button>
+            <iframe 
+              src={`https://www.youtube.com/embed/${playingId}?autoplay=1&rel=0`} 
+              width="100%" height="100%" frameBorder="0" 
+              allow="autoplay; encrypted-media; fullscreen" allowFullScreen
             ></iframe>
           </div>
         </div>
@@ -93,20 +109,25 @@ function App() {
 
       <nav className="navbar">
         <h1 className="logo"><span className="logo-c">C</span>INEMA</h1>
-        <div className="nav-icons"><span className="icon">🔍</span><span className="icon">👤</span></div>
+        <div className="nav-icons"><span>🔍</span><span>👤</span></div>
       </nav>
 
       {banner && (
-        <header className="banner" style={{ backgroundImage: `url(${banner.backdrop})` }}>
+        <header className="banner" style={{backgroundImage: `url(${banner.backdrop})`}}>
           <div className="banner-content">
-            <div className="tags"><span className="tag-trending">🔥 100% FREE</span><span className="tag-rating">★ {banner.rating}</span></div>
+            <div className="tags">
+              <span className="tag-trending">🔥 100% FREE</span>
+              <span className="tag-rating">★ {banner.rating}</span>
+            </div>
             <h1 className="banner-title">{banner.title}</h1>
             <p className="banner-info">{banner.year} • {banner.duration} • {banner.language}</p>
             <p className="banner-genre">{banner.genre}</p>
             <p className="banner-desc">{banner.desc}</p>
             <div className="banner-buttons">
-              <button className="play-btn" onClick={() => playMovie(banner.youtubeId)}>▶ Play Free Now</button>
-              <button className="list-btn" onClick={() => toggleMyList(banner.id)}>
+              {banner.youtubeId && (
+                <button className="play-btn" onClick={() => setPlayingId(banner.youtubeId)}>▶ Play Free Now</button>
+              )}
+              <button className="list-btn" onClick={() => toggleList(banner.id)}>
                 {myList.includes(banner.id) ? '✓ My List' : '+ My List'}
               </button>
             </div>
@@ -115,30 +136,30 @@ function App() {
       )}
 
       <div className="search-bar">
-        <input type="text" placeholder="Search movies..." value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)} className="search-input" />
+        <input type="text" placeholder="Search classic movies..." value={search} 
+          onChange={e => setSearch(e.target.value)} className="search-input" />
       </div>
 
       <div className="categories">
-        {genres.map(genre => (
-          <button key={genre} className={`cat-btn ${selectedGenre === genre ? 'active' : ''}`} 
-            onClick={() => setSelectedGenre(genre)}>{genre}</button>
+        {genres.map(g => (
+          <button key={g} className={`cat-btn ${selectedGenre === g ? 'active' : ''}`} 
+            onClick={() => setSelectedGenre(g)}>{g}</button>
         ))}
       </div>
 
       <div className="row">
-        <h2>🎬 Free Bollywood Classics ({filteredMovies.length} Movies)</h2>
+        <h2>🎬 Bollywood Classics ({filtered.length} Movies)</h2>
         <div className="row-posters">
-          {filteredMovies.map((movie: Movie) => (
+          {filtered.map(movie => (
             <div key={movie.id} className="movie-card">
-              <div className="poster-wrapper" onClick={() => playMovie(movie.youtubeId)}>
+              <div className="poster-wrapper" onClick={() => movie.youtubeId && setPlayingId(movie.youtubeId)}>
                 <img src={movie.poster} alt={movie.title} className="poster" loading="lazy" />
-                <div className="rating-badge">FREE HD</div>
-                <div className="play-overlay">▶</div>
+                <div className="rating-badge">{movie.youtubeId ? 'FREE HD' : 'Coming Soon'}</div>
+                {movie.youtubeId && <div className="play-overlay">▶</div>}
               </div>
               <h3>{movie.title}</h3>
               <p>{movie.year} • {movie.genre}</p>
-              <button className="add-list-btn" onClick={(e) => {e.stopPropagation(); toggleMyList(movie.id)}}>
+              <button className="add-list-btn" onClick={e => {e.stopPropagation(); toggleList(movie.id)}}>
                 {myList.includes(movie.id) ? '✓ Added' : '+ List'}
               </button>
             </div>
@@ -147,13 +168,19 @@ function App() {
       </div>
 
       <div className="row legal-row">
-        <h2>⚖️ 100% Legal - AdSense Ready</h2>
+        <h2>⚖️ Personal Project - Powered by TMDB</h2>
         <div className="legal-box">
-          <p>✅ All videos embedded from YouTube Official Channels</p>
-          <p>✅ We don't host any video - 100% Legal</p>
-          <p>✅ No API needed - Site loads fast</p>
-          <p>✅ AdSense Approved Structure</p>
+          <p>✅ Movie data from TMDB API</p>
+          <p>✅ Videos from YouTube Official Channels</p>
+          <p>✅ Non-Commercial Use Only</p>
         </div>
+      </div>
+
+      <div className="tmdb-credit">
+        <p>Movie data provided by 
+          <img src="https://www.themoviedb.org/assets/2/v4/logos/v2/blue_short-8e7b30f73a4020692ccca9c88bafe5dcb6f8a62a049c70e9558ef1e01d8d6d29.svg" alt="TMDB" />
+        </p>
+        <p>This product uses the TMDB API but is not endorsed or certified by TMDB.</p>
       </div>
     </div>
   )
