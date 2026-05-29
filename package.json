@@ -2,27 +2,137 @@
   "name": "ott-cinema",
   "version": "1.0.0",
   "private": true,
+  "type": "module",
+  "description": "OTT Cinema App built with Vite React Tailwind",
+  "author": "aashumalik784",
+  "license": "MIT",
+  "keywords": [
+    "react",
+    "vite",
+    "tailwindcss",
+    "ott",
+    "cinema",
+    "tmdb",
+    "movies"
+  ],
+  "homepage": "https://ott-cinema.pages.dev",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/aashumalik784/OTT_Cinema"
+  },
+  "bugs": {
+    "url": "https://github.com/aashumalik784/OTT_Cinema/issues"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "lint": "eslint src --ext js,jsx,ts,tsx",
+    "lint:fix": "eslint src --ext js,jsx,ts,tsx --fix",
+    "format": "prettier --write src/**/*.{js,jsx,ts,tsx,css,md,json}",
+    "type-check": "tsc --noEmit",
+    "clean": "rm -rf dist node_modules",
+    "reinstall": "npm run clean && npm install",
+    "cf:deploy": "npm run build && wrangler pages deploy dist"
+  },
   "dependencies": {
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-scripts": "5.0.1"
+    "react-router-dom": "^6.21.1",
+    "axios": "^1.6.5",
+    "react-icons": "^5.0.1",
+    "react-player": "^2.14.1",
+    "swiper": "^11.0.5",
+    "framer-motion": "^10.18.0"
   },
   "devDependencies": {
-    "tailwindcss": "^3.4.0",
-    "postcss": "^8.4.31",
-    "autoprefixer": "^10.4.16"
-  },
-  "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "@types/react": "^18.2.47",
+    "@types/react-dom": "^18.2.18",
+    "@typescript-eslint/eslint-plugin": "^6.19.0",
+    "@typescript-eslint/parser": "^6.19.0",
+    "@vitejs/plugin-react": "^4.2.1",
+    "autoprefixer": "^10.4.16",
+    "eslint": "^8.56.0",
+    "eslint-plugin-react": "^7.33.2",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "eslint-plugin-react-refresh": "^0.4.5",
+    "postcss": "^8.4.33",
+    "prettier": "^3.2.4",
+    "tailwindcss": "^3.4.1",
+    "typescript": "^5.3.3",
+    "vite": "^5.0.11",
+    "wrangler": "^3.22.2"
   },
   "eslintConfig": {
-    "extends": ["react-app"]
+    "root": true,
+    "env": {
+      "browser": true,
+      "es2020": true,
+      "node": true
+    },
+    "extends": [
+      "eslint:recommended",
+      "plugin:@typescript-eslint/recommended",
+      "plugin:react-hooks/recommended",
+      "plugin:react/recommended",
+      "plugin:react/jsx-runtime"
+    ],
+    "ignorePatterns": [
+      "dist",
+      ".eslintrc.cjs",
+      "vite.config.ts"
+    ],
+    "parser": "@typescript-eslint/parser",
+    "parserOptions": {
+      "ecmaVersion": "latest",
+      "sourceType": "module"
+    },
+    "plugins": [
+      "react-refresh",
+      "@typescript-eslint",
+      "react"
+    ],
+    "rules": {
+      "react-refresh/only-export-components": [
+        "warn",
+        {
+          "allowConstantExport": true
+        }
+      ],
+      "react/prop-types": "off",
+      "@typescript-eslint/no-unused-vars": "warn",
+      "no-console": "warn"
+    },
+    "settings": {
+      "react": {
+        "version": "detect"
+      }
+    }
   },
   "browserslist": {
-    "production": [">0.2%", "not dead", "not op_mini all"],
-    "development": ["last 1 chrome version", "last 1 firefox version", "last 1 safari version"]
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "prettier": {
+    "semi": false,
+    "singleQuote": true,
+    "tabWidth": 2,
+    "trailingComma": "es5",
+    "printWidth": 100
+  },
+  "volta": {
+    "node": "20.11.0"
   }
 }
