@@ -1,17 +1,43 @@
 import { useState, useEffect } from 'react';
-import { getMovies } from './services/apiservice';
+import { 
+  getMovies, 
+  getBollywoodMovies, 
+  getSouthHindiMovies,
+  getHollywoodHindi,
+  getNetflixMovies,
+  getPrimeMovies,
+  getHotstarMovies,
+  getKDrama,
+  getHindiWebSeries
+} from './services/apiservice';
 import MovieModal from './components/MovieModal';
 import './index.css';
 
 function App() {
+  const [category, setCategory] = useState('trending');
   const [movies, setMovies] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedMovie, setSelectedMovie] = useState(null);
 
+  const categories = [
+    { key: 'trending', name: '🔥 Trending', func: () => getMovies('/trending/all/week') },
+    { key: 'bollywood', name: '🇮🇳 Bollywood', func: getBollywoodMovies },
+    { key: 'south', name: 'South Hindi', func: getSouthHindiMovies },
+    { key: 'hollywood_hindi', name: 'Hollywood Hindi', func: getHollywoodHindi },
+    { key: 'netflix', name: 'Netflix', func: getNetflixMovies },
+    { key: 'prime', name: 'Prime Video', func: getPrimeMovies },
+    { key: 'hotstar', name: 'JioHotstar', func: getHotstarMovies },
+    { key: 'kdrama', name: 'K-Drama', func: getKDrama },
+    { key: 'webseries', name: 'Hindi Series', func: getHindiWebSeries },
+  ];
+
   useEffect(() => {
     const fetchMovies = async () => {
-      const { movies, error } = await getMovies('/trending/movie/week');
+      setLoading(true);
+      setError(null);
+      const selectedCat = categories.find(c => c.key === category);
+      const { movies, error } = await selectedCat.func();
       if (error) {
         setError(error);
       } else {
@@ -20,22 +46,14 @@ function App() {
       setLoading(false);
     };
     fetchMovies();
-  }, []);
-
-  if (loading) {
-    return (
-      <div className="bg-black min-h-screen flex items-center justify-center">
-        <div className="text-white text-2xl">Loading...</div>
-      </div>
-    );
-  }
+  }, [category]);
 
   if (error) {
     return (
       <div className="bg-black min-h-screen flex items-center justify-center flex-col">
         <div className="text-6xl mb-4">🎬</div>
         <div className="text-white text-2xl mb-2">Connection Error</div>
-        <div className="text-gray-400">HTTP Error: 401 - {error}</div>
+        <div className="text-gray-400">{error}</div>
       </div>
     );
   }
@@ -43,37 +61,49 @@ function App() {
   return (
     <div className="bg-black min-h-screen text-white">
       {/* Header */}
-      <div className="p-4 flex justify-between items-center">
+      <div className="p-4 flex justify-between items-center sticky top-0 bg-black/90 backdrop-blur z-40">
         <h1 className="text-4xl font-bold text-red-600">OTT CINEMA</h1>
-        <input 
-          type="text" 
-          placeholder="🔍 Search..." 
-          className="bg-zinc-800 px-4 py-2 rounded text-white"
-        />
+      </div>
+
+      {/* Categories */}
+      <div className="px-4 flex gap-2 overflow-x-auto pb-4 scrollbar-hide">
+        {categories.map(cat => (
+          <button
+            key={cat.key}
+            onClick={() => setCategory(cat.key)}
+            className={`px-4 py-2 rounded whitespace-nowrap font-semibold transition-colors ${category === cat.key? 'bg-red-600' : 'bg-zinc-800 hover:bg-zinc-700'}`}
+          >
+            {cat.name}
+          </button>
+        ))}
       </div>
 
       {/* Movies Grid */}
       <div className="p-4">
-        <h2 className="text-2xl font-bold mb-4">⭐ Top Rated</h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-          {movies.map((movie) => (
-            <div 
-              key={movie.id} 
-              onClick={() => setSelectedMovie(movie)}
-              className="cursor-pointer hover:scale-105 transition-transform"
-            >
-              <img 
-                src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
-                alt={movie.title}
-                className="rounded-lg w-full"
-              />
-              <p className="mt-2 text-sm truncate">{movie.title}</p>
-            </div>
-          ))}
-        </div>
+        {loading? (
+          <div className="text-center text-xl mt-20">Loading...</div>
+        ) : (
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+            {movies.map(movie => (
+              <div 
+                key={movie.id} 
+                onClick={() => setSelectedMovie({...movie, media_type: movie.media_type || (movie.first_air_date? 'tv' : 'movie')})}
+                className="cursor-pointer hover:scale-105 transition-transform"
+              >
+                <img 
+                  src={movie.poster_path? `https://image.tmdb.org/t/p/w500${movie.poster_path}` : 'https://via.placeholder.com/500x750?text=No+Image'}
+                  alt={movie.title || movie.name}
+                  className="rounded-lg w-full aspect-[2/3] object-cover"
+                  loading="lazy"
+                />
+                <p className="mt-2 text-sm truncate">{movie.title || movie.name}</p>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
-      {/* Movie Modal - Play Now wala */}
+      {/* Movie Modal */}
       {selectedMovie && (
         <MovieModal 
           movie={selectedMovie} 
@@ -81,7 +111,7 @@ function App() {
         />
       )}
     </div>
-  );
+  )
 }
 
 export default App;
