@@ -192,16 +192,8 @@ window.addEventListener('load', () => {
 // 2. Check for PWA updates
 checkForUpdates()
 
-// 3. Report web vitals
-if ('web-vitals' in window) {
-  import('web-vitals').then(({ getCLS, getFID, getFCP, getLCP, getTTFB }) => {
-    getCLS(reportWebVitals)
-    getFID(reportWebVitals)
-    getFCP(reportWebVitals)
-    getLCP(reportWebVitals)
-    getTTFB(reportWebVitals)
-  })
-}
+// 3. Report web vitals - REMOVED import, ye optional tha
+// Agar future mein chahiye toh package.json mein "web-vitals" install karna
 
 // 4. Development console message
 if (import.meta.env.DEV) {
@@ -290,4 +282,4 @@ if ('PerformanceObserver' in window) {
   } catch (e) {
     // Performance observer not supported
   }
-              }
+          }
