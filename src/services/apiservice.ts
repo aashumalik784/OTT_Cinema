@@ -1,124 +1,80 @@
-const BASE_URL = "https://api.themoviedb.org/3";
-const IMG_BASE_URL = "https://image.tmdb.org/t/p/w500";
-const BACKDROP_BASE_URL = "https://image.tmdb.org/t/p/original";
-
-// Vite mein import.meta.env use hota hai
 const API_KEY = import.meta.env.VITE_TMDB_API_KEY;
+const BASE_URL = "https://api.themoviedb.org/3";
 
-// API Key check karo
 if (!API_KEY) {
   console.error("❌ TMDB API Key missing! Cloudflare env vars check karo.");
 }
 
-// Types
-export interface Movie {
-  id: number;
-  title: string;
-  overview: string;
-  poster_url: string | null;
-  backdrop_url: string | null;
-  year: string;
-  rating: string;
-  vote_average: number;
-  release_date: string;
-  poster_path: string | null;
-  backdrop_path: string | null;
-}
-
-export interface MoviesResponse {
-  movies: Movie[];
-  totalPages: number;
-  currentPage: number;
-  error?: string;
-}
-
-export const getMovies = async (page: number = 1): Promise<MoviesResponse> => {
-  // API key nahi hai toh fake data return kar de
+// TMDB se movies laane ke liye
+export const getMovies = async (endpoint: string) => {
   if (!API_KEY) {
     return {
       movies: [],
-      totalPages: 0,
-      currentPage: 1,
       error: "API Key not configured. Please add VITE_TMDB_API_KEY in Cloudflare."
     };
   }
-
   try {
-    const url = `${BASE_URL}/trending/movie/week?api_key=${API_KEY}&language=hi-IN&page=${page}`;
-    
-    const res = await fetch(url);
-    
-    // HTTP error check
-    if (!res.ok) {
-      throw new Error(`HTTP Error: ${res.status} - ${res.statusText}`);
+    const response = await fetch(`${BASE_URL}${endpoint}?api_key=${API_KEY}&language=en-US`);
+    if (!response.ok) {
+      throw new Error(`HTTP Error: ${response.status}`);
     }
-    
+    const data = await response.json();
+    return { movies: data.results || [], error: null };
+  } catch (error) {
+    console.error("API Error:", error);
+    return {
+      movies: [],
+      error: error instanceof Error? error.message : "Failed to fetch"
+    };
+  }
+}
+
+// Single movie detail
+export const getMovieDetails = async (id: number) => {
+  try {
+    const response = await fetch(`${BASE_URL}/movie/${id}?api_key=${API_KEY}&language=en-US`);
+    if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
+    return await response.json();
+  } catch (error) {
+    console.error("Movie Details Error:", error);
+    return null;
+  }
+}
+
+// TMDB se YouTube trailer key nikalne ke liye
+export const getMovieTrailer = async (id: number) => {
+  try {
+    const res = await fetch(`${BASE_URL}/movie/${id}/videos?api_key=${API_KEY}&language=en-US`);
     const data = await res.json();
     
-    // TMDB error check
-    if (data.success === false) {
-      throw new Error(`TMDB Error: ${data.status_message}`);
-    }
+    // Official trailer dhundo, nahi to koi bhi YouTube video
+    const trailer = data.results?.find((v: any) => v.type === "Trailer" && v.site === "YouTube") 
+                 || data.results?.find((v: any) => v.site === "YouTube");
     
-    const movies: Movie[] = data.results.map((m: any) => ({
-     ...m,
-      poster_url: m.poster_path? `${IMG_BASE_URL}${m.poster_path}` : null,
-      backdrop_url: m.backdrop_path? `${BACKDROP_BASE_URL}${m.backdrop_path}` : null,
-      year: m.release_date?.split('-')[0] || 'N/A',
-      rating: m.vote_average? m.vote_average.toFixed(1) : 'N/A'
-    }));
-    
-    return {
-      movies,
-      totalPages: data.total_pages || 0,
-      currentPage: data.page || 1
-    };
-    
-  } catch (err: any) {
-    console.error("🚨 API Error:", err.message);
-    return { 
-      movies: [], 
-      totalPages: 0, 
-      currentPage: 1,
-      error: err.message 
-    };
+    return trailer? trailer.key : null;
+  } catch (error) {
+    console.error("Trailer Error:", error);
+    return null;
   }
-};
+}
 
-// Search movies function bhi add kar de
-export const searchMovies = async (query: string, page: number = 1): Promise<MoviesResponse> => {
-  if (!API_KEY) {
-    return { movies: [], totalPages: 0, currentPage: 1, error: "API Key missing" };
-  }
-  
-  if (!query.trim()) {
-    return { movies: [], totalPages: 0, currentPage: 1 };
-  }
-
+// Internet Archive pe free movie check karne ke liye
+export const getInternetArchiveVideo = async (title: string, year: string) => {
   try {
-    const url = `${BASE_URL}/search/movie?api_key=${API_KEY}&language=hi-IN&query=${encodeURIComponent(query)}&page=${page}`;
+    const cleanTitle = title.replace(/[^a-zA-Z0-9 ]/g, '');
+    const query = `${cleanTitle} ${year}`.replace(/ /g, '+');
+    const url = `https://archive.org/advancedsearch.php?q=title:(${query})+AND+mediatype:(movies)&fl[]=identifier&output=json&rows=1`;
+    
     const res = await fetch(url);
-    
-    if (!res.ok) throw new Error(`HTTP Error: ${res.status}`);
-    
     const data = await res.json();
     
-    const movies: Movie[] = data.results.map((m: any) => ({
-     ...m,
-      poster_url: m.poster_path? `${IMG_BASE_URL}${m.poster_path}` : null,
-      backdrop_url: m.backdrop_path? `${BACKDROP_BASE_URL}${m.backdrop_path}` : null,
-      year: m.release_date?.split('-')[0] || 'N/A',
-      rating: m.vote_average? m.vote_average.toFixed(1) : 'N/A'
-    }));
-    
-    return {
-      movies,
-      totalPages: data.total_pages || 0,
-      currentPage: data.page || 1
-    };
-    
-  } catch (err: any) {
-    console.error("🚨 Search Error:", err.message);
-    return { movies: [], totalPages: 0, currentPage: 1, error: err.message };
+    if (data.response?.docs?.length > 0) {
+      const identifier = data.response.docs[0].identifier;
+      return `https://archive.org/embed/${identifier}`; // Embed player best hai
+    }
+    return null;
+  } catch (error) {
+    console.error("Archive Error:", error);
+    return null;
   }
-};
+}
